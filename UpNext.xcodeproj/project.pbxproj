@@ -13,7 +13,6 @@
 		1D4FC9DF251127CF00AC1088 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D4FC9DE251127CF00AC1088 /* Assets.xcassets */; };
 		1D4FC9E2251127CF00AC1088 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1D4FC9E1251127CF00AC1088 /* Preview Assets.xcassets */; };
 		1D4FC9E5251127D000AC1088 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1D4FC9E3251127D000AC1088 /* LaunchScreen.storyboard */; };
-		1D4FC9ED25112D7500AC1088 /* EventController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D4FC9EC25112D7500AC1088 /* EventController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,7 +24,6 @@
 		1D4FC9E1251127CF00AC1088 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1D4FC9E4251127D000AC1088 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		1D4FC9E6251127D000AC1088 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1D4FC9EC25112D7500AC1088 /* EventController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,7 +63,6 @@
 				1D4FC9E3251127D000AC1088 /* LaunchScreen.storyboard */,
 				1D4FC9E6251127D000AC1088 /* Info.plist */,
 				1D4FC9E0251127CF00AC1088 /* Preview Content */,
-				1D4FC9EC25112D7500AC1088 /* EventController.swift */,
 			);
 			path = UpNext;
 			sourceTree = "<group>";
@@ -152,7 +149,6 @@
 				1D4FC9D9251127CD00AC1088 /* AppDelegate.swift in Sources */,
 				1D4FC9DB251127CD00AC1088 /* SceneDelegate.swift in Sources */,
 				1D4FC9DD251127CD00AC1088 /* ContentView.swift in Sources */,
-				1D4FC9ED25112D7500AC1088 /* EventController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,7 +289,6 @@
 				DEVELOPMENT_TEAM = 325ZCV49Y4;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = UpNext/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -314,7 +309,6 @@
 				DEVELOPMENT_TEAM = 325ZCV49Y4;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = UpNext/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -19,9 +19,13 @@ class EventController: ObservableObject {
         let id: String
         let title: String
         let startDate: Date
-        
-        var time: String {
+        let endDate: Date
+
+        var startTime: String {
             Event.formatter.string(from: startDate)
+        }
+        var endTime: String {
+            Event.formatter.string(from: endDate)
         }
         var remaining: Int {
             Int(startDate.timeIntervalSince1970 - Date().timeIntervalSince1970)
@@ -83,7 +87,9 @@ class EventController: ObservableObject {
     var authorizationStatus: EKAuthorizationStatus {
         EKEventStore.authorizationStatus(for: EKEntityType.event)
     }
-
+    
+    var currentEvent: Event? = nil
+    
     init() {
         if authorizationStatus == .authorized {
             fetchEvents()
@@ -96,11 +102,13 @@ class EventController: ObservableObject {
     }
 
     private func _requestAccessCompletion(accessGranted: Bool, error: Error?) {
-        self.isRequestingAccess = false
+		DispatchQueue.main.async {
+			self.isRequestingAccess = false
 
-        if accessGranted {
-            fetchEvents()
-        }
+			if accessGranted {
+				self.fetchEvents()
+			}
+		}
     }
     
     func dismiss() {
@@ -111,10 +119,12 @@ class EventController: ObservableObject {
     
     func fetchEvents() {
         guard authorizationStatus == .authorized else { return }
-        
+
         let now = Date()
         self.now = now
-        let isStale = lastFetched.map({ now.timeIntervalSince1970 - $0.timeIntervalSince1970 > 60 }) ?? true
+		self.dismissedEvents = self.dismissedEvents.filter { $0.endDate > now }
+
+		let isStale = lastFetched.map({ now.timeIntervalSince1970 - $0.timeIntervalSince1970 > 60 }) ?? true
         if isStale {
             eventStore.refreshSourcesIfNecessary()
             lastFetched = now
@@ -127,12 +137,25 @@ class EventController: ObservableObject {
         
         let predicate = eventStore.predicateForEvents(withStart: now, end: later, calendars: nil)
         let newEvents: [Event] = eventStore.events(matching: predicate).compactMap { event in
-            guard let startDate = event.startDate, startDate > now, !event.isAllDay else { return nil }
+            guard event.availability != .free, let startDate = event.startDate, let endDate = event.endDate else { return nil }
+            
+            if startDate <= now && endDate > now {
+                currentEvent = Event(
+                    id: event.eventIdentifier,
+                    title: event.title,
+                    startDate: startDate,
+                    endDate: endDate
+                )
+                return nil
+            }
+            
+            guard startDate > now, !event.isAllDay else { return nil }
             guard !dismissedEvents.contains(where: { $0.id == event.eventIdentifier }) else { return nil }
             return Event(
                 id: event.eventIdentifier,
                 title: event.title,
-                startDate: startDate
+                startDate: startDate,
+                endDate: endDate
             )
         }
 
