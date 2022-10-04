@@ -20,6 +20,9 @@ class EventController: ObservableObject {
         let title: String
         let startDate: Date
         let endDate: Date
+        var hasStarted: Bool {
+            remaining < 0
+        }
 
         var startTime: String {
             Event.formatter.string(from: startDate)
@@ -88,8 +91,16 @@ class EventController: ObservableObject {
         EKEventStore.authorizationStatus(for: EKEntityType.event)
     }
     
-    var currentEvent: Event? = nil
-    
+	var nextEvents: [Event] {
+		guard let events = events else { return [] }
+		return events.filter { $0.startDate > now }
+	}
+
+	var currentEvents: [Event] {
+		guard let events = events else { return [] }
+		return events.filter { $0.endDate > now && $0.startDate < now }
+	}
+
     init() {
         if authorizationStatus == .authorized {
             fetchEvents()
@@ -116,6 +127,10 @@ class EventController: ObservableObject {
         self.soonEvent = nil
         dismissedEvents.append(event)
     }
+
+	func isDismissed(_ event: Event) -> Bool {
+		dismissedEvents.contains(where: { $0.id == event.id })
+	}
     
     func fetchEvents() {
         guard authorizationStatus == .authorized else { return }
@@ -136,32 +151,28 @@ class EventController: ObservableObject {
             else { return }
         
         let predicate = eventStore.predicateForEvents(withStart: now, end: later, calendars: nil)
-        let newEvents: [Event] = eventStore.events(matching: predicate).compactMap { event in
+        let allEvents: [Event] = eventStore.events(matching: predicate).compactMap { event in
             guard event.availability != .free, let startDate = event.startDate, let endDate = event.endDate else { return nil }
+
+			let newEvent = Event(
+				id: event.eventIdentifier,
+				title: event.title,
+				startDate: startDate,
+				endDate: endDate
+			)
             
-            if startDate <= now && endDate > now {
-                currentEvent = Event(
-                    id: event.eventIdentifier,
-                    title: event.title,
-                    startDate: startDate,
-                    endDate: endDate
-                )
-                return nil
-            }
-            
-            guard startDate > now, !event.isAllDay else { return nil }
-            guard !dismissedEvents.contains(where: { $0.id == event.eventIdentifier }) else { return nil }
-            return Event(
-                id: event.eventIdentifier,
-                title: event.title,
-                startDate: startDate,
-                endDate: endDate
-            )
+            guard endDate > now, !event.isAllDay else { return nil }
+            return newEvent
         }
 
-        self.events = newEvents
-        if self.soonEvent == nil, let nextEvent = newEvents.first(where: { $0.isSoon }) {
-            self.soonEvent = nextEvent
+		self.events = allEvents
+
+		if self.soonEvent == nil {
+			self.soonEvent = allEvents.first {
+				$0.startDate > now
+				&& $0.isSoon
+				&& !isDismissed($0)
+			}
         }
     }
 }
