@@ -33,7 +33,7 @@ struct ContentView: View {
                 Button(action: {
                     self.controller.requestAccess()
                 }) {
-                   Text("Request permission")
+                   Text("To use this app we will need access to your calendar(s).")
                }
             }
             else if selectingCalendars {
