@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 53;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,7 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1D4FC9D5251127CD00AC1088 /* UpNext.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UpNext.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1D4FC9D5251127CD00AC1088 /* WhatsUpNext.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhatsUpNext.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1D4FC9D8251127CD00AC1088 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		1D4FC9DA251127CD00AC1088 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		1D4FC9DC251127CD00AC1088 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -52,7 +52,7 @@
 		1D4FC9D6251127CD00AC1088 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1D4FC9D5251127CD00AC1088 /* UpNext.app */,
+				1D4FC9D5251127CD00AC1088 /* WhatsUpNext.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -84,9 +84,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		1D4FC9D4251127CD00AC1088 /* UpNext */ = {
+		1D4FC9D4251127CD00AC1088 /* WhatsUpNext */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 1D4FC9E9251127D000AC1088 /* Build configuration list for PBXNativeTarget "UpNext" */;
+			buildConfigurationList = 1D4FC9E9251127D000AC1088 /* Build configuration list for PBXNativeTarget "WhatsUpNext" */;
 			buildPhases = (
 				1D4FC9D1251127CD00AC1088 /* Sources */,
 				1D4FC9D2251127CD00AC1088 /* Frameworks */,
@@ -96,9 +96,9 @@
 			);
 			dependencies = (
 			);
-			name = UpNext;
+			name = WhatsUpNext;
 			productName = UpNext;
-			productReference = 1D4FC9D5251127CD00AC1088 /* UpNext.app */;
+			productReference = 1D4FC9D5251127CD00AC1088 /* WhatsUpNext.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -107,8 +107,9 @@
 		1D4FC9CD251127CD00AC1088 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1170;
-				LastUpgradeCheck = 1400;
+				LastUpgradeCheck = 1430;
 				ORGANIZATIONNAME = "The Gray Dot Company";
 				TargetAttributes = {
 					1D4FC9D4251127CD00AC1088 = {
@@ -129,7 +130,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				1D4FC9D4251127CD00AC1088 /* UpNext */,
+				1D4FC9D4251127CD00AC1088 /* WhatsUpNext */,
 			);
 		};
 /* End PBXProject section */
@@ -294,16 +295,21 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"UpNext/Preview Content\"";
 				DEVELOPMENT_TEAM = 325ZCV49Y4;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = UpNext/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WhatsUpNext;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = company.thegray.UpNext;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -315,16 +321,21 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 7;
 				DEVELOPMENT_ASSET_PATHS = "\"UpNext/Preview Content\"";
 				DEVELOPMENT_TEAM = 325ZCV49Y4;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = UpNext/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WhatsUpNext;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1;
 				PRODUCT_BUNDLE_IDENTIFIER = company.thegray.UpNext;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -344,7 +355,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		1D4FC9E9251127D000AC1088 /* Build configuration list for PBXNativeTarget "UpNext" */ = {
+		1D4FC9E9251127D000AC1088 /* Build configuration list for PBXNativeTarget "WhatsUpNext" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				1D4FC9EA251127D000AC1088 /* Debug */,
