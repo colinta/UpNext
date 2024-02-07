@@ -20,7 +20,7 @@
 	<string>7</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSCalendarsUsageDescription</key>
+	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>This app is all about showing calendar events.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

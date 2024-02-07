@@ -61,6 +61,7 @@ struct ContentView: View {
 struct SoonEventView: View {
     let soonEvent: Event
     let onTap: (() -> Void)?
+	@Environment(\.colorScheme) var currentMode
 
     init(_ event: Event, onTap: (() -> Void)? = nil) {
         self.soonEvent = event
@@ -78,6 +79,16 @@ struct SoonEventView: View {
 			return "just started"
 		}
 	}
+	
+	var color1: Color {
+		currentMode == .dark ? Color.orange : Color.init(hue: 354/360, saturation: 77/100, brightness: 87/100)
+	}
+	var color2: Color {
+		currentMode == .dark ? Color.purple : Color.mint
+	}
+	var bgColor: Color {
+		currentMode == .dark ? Color.black : Color.white
+	}
 
     var body: some View {
         VStack {
@@ -88,7 +99,7 @@ struct SoonEventView: View {
             }
             .padding([.leading, .trailing], 10)
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
-        }.background(soonEvent.isVerySoon ? (Int(soonEvent.remaining) % 2 == 0 ? Color.red : Color.blue) : Color.white )
+        }.background(soonEvent.isVerySoon ? (Int(soonEvent.remaining) % 2 == 0 ? color1 : color2) : bgColor )
             .onTapGesture {
                 self.onTap?()
             }.ignoresSafeArea()
@@ -172,6 +183,10 @@ struct EventsView: View {
             Spacer()
         }
     }
+	@Environment(\.colorScheme) var currentMode
+	var bgBar: Color {
+		currentMode == .dark ? Color.gray.opacity(0.4) : Color.gray.opacity(0.2)
+	}
 
 	func listItem(_ event: Event) -> some View {
 		ZStack {
@@ -179,7 +194,7 @@ struct EventsView: View {
 				if event.status == .accepted || event.status == .completed || event.status == .inProcess {
 					if (event.hasStarted) {
 						HStack {
-							Color.gray.opacity(0.2).frame(width: metrics.size.width * event.remainingPercent, height: metrics.size.height)
+							bgBar.frame(width: metrics.size.width * event.remainingPercent, height: metrics.size.height)
 								.padding(0)
 							Spacer()
 						}
@@ -197,7 +212,7 @@ struct EventsView: View {
 					ZStack {
 						Stripes(config: StripesConfig(
 							background: Color.clear,
-							foreground: Color.gray.opacity(0.2),
+							foreground: bgBar,
 							degrees: 30, barWidth: 10))
 					}
 				} else {
@@ -262,30 +277,32 @@ struct EventsView_Upcoming_Previews: PreviewProvider {
         let oneDay = 1440
         let offsets: [(String, Int, Int, EKParticipantStatus)] = [
             ("Start the day off right, with a long meeting. ", -30, 30, .accepted),
-            ("", 30, 60, .accepted),
+            ("Something quick", 30, 60, .accepted),
             ("Meet with and discuss lots of interesting features and changes that may or may not have impact to users. ", 90, 150, .declined),
-            ("", oneDay, 150, .accepted),
-            ("", oneDay + 15, 150, .declined),
-			("", oneDay + oneDay + 15, 150, .accepted),
+            ("Another one", oneDay, 150, .accepted),
+            ("Something else", oneDay + 15, 150, .unknown),
+			("Nothing!", oneDay + oneDay + 15, 150, .tentative),
         ]
-        let events: [Event] = offsets.map { (prefix, startOffset, endOffset, status) in
+        let events: [Event] = offsets.map { (title, startOffset, endOffset, status) in
             let startComponents = DateComponents(minute: startOffset)
             let endComponents = DateComponents(minute: endOffset)
             let startTime = calendar.date(byAdding: startComponents, to: now)!
             let endTime = calendar.date(byAdding: endComponents, to: now)!
-            let title: String = ({
+            let postfix: String = ({
                 switch status {
                 case .accepted:
-                    return "Working, confirmed"
+                    return " (accepted)"
                 case .tentative:
-                    return "Working, maybe"
+                    return " (maybe)"
                 case .declined:
-                    return "Working, no way"
-                default:
-                    return "Working, unknown"
+                    return " (declined)"
+				case .unknown:
+                    return " (unknown)"
+				default:
+					return " (???)"
                 }
             })()
-            return Event(id: "\(startTime)-\(endComponents)", title: "\(prefix)\(title)", startDate: startTime, endDate: endTime, status: status)
+            return Event(id: "\(startTime)-\(endComponents)", title: "\(title)\(postfix)", startDate: startTime, endDate: endTime, status: status)
         }
 
         return VStack {
@@ -390,7 +407,7 @@ struct VerySoonEvent_Previews: PreviewProvider {
         }
         
         let eventStarted: () -> Event = {
-            let startComponents = DateComponents(second: -30)
+            let startComponents = DateComponents(second: -31)
             let endComponents = DateComponents(minute: 31)
             let startTime = calendar.date(byAdding: startComponents, to: now)!
             let endTime = calendar.date(byAdding: endComponents, to: now)!

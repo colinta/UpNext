@@ -12,11 +12,11 @@ private let dayMonthYearComponents: Set<Foundation.Calendar.Component> = [.day, 
 private let ONE_DAY: TimeInterval = 24 * 60 * 60
 
 private extension Date {
-	func isSameDay(as date: Date) -> Bool {
-		let startComponents = calendar.dateComponents(dayMonthYearComponents, from: self)
-		let dateComponents = calendar.dateComponents(dayMonthYearComponents, from: date)
-		return startComponents.day == dateComponents.day && startComponents.month == dateComponents.month && startComponents.year == dateComponents.year
-	}
+    func isSameDay(as date: Date) -> Bool {
+        let startComponents = calendar.dateComponents(dayMonthYearComponents, from: self)
+        let dateComponents = calendar.dateComponents(dayMonthYearComponents, from: date)
+        return startComponents.day == dateComponents.day && startComponents.month == dateComponents.month && startComponents.year == dateComponents.year
+    }
 }
 
 class EventController: ObservableObject {
@@ -25,7 +25,7 @@ class EventController: ObservableObject {
         let title: String
         let id: String
     }
-	
+
     struct Event {
         static let timeFormatter: DateFormatter = {
             let formatter = DateFormatter()
@@ -34,12 +34,12 @@ class EventController: ObservableObject {
             return formatter
         }()
 
-		static let dateFormatter: DateFormatter = {
-			let formatter = DateFormatter()
-			formatter.dateStyle = .medium
-			formatter.timeStyle = .none
-			return formatter
-		}()
+        static let dateFormatter: DateFormatter = {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+            return formatter
+        }()
 
         let id: String
         let title: String
@@ -57,11 +57,11 @@ class EventController: ObservableObject {
             Event.timeFormatter.string(from: endDate)
         }
         var remaining: TimeInterval {
-			startDate.timeIntervalSinceNow.rounded()
+            startDate.timeIntervalSinceNow.rounded()
         }
-		var remainingPercent: TimeInterval {
-			Date().timeIntervalSince(startDate) / (endDate.timeIntervalSinceNow - startDate.timeIntervalSinceNow)
-		}
+        var remainingPercent: TimeInterval {
+            Date().timeIntervalSince(startDate) / (endDate.timeIntervalSinceNow - startDate.timeIntervalSinceNow)
+        }
 
         var isSoon: Bool {
             remaining < 300
@@ -69,31 +69,31 @@ class EventController: ObservableObject {
         var isVerySoon: Bool {
             remaining < 60
         }
-		var dayMonth: String {
-			let formatted = Event.dateFormatter.string(from: startDate)
-			let today = Date()
-			if startDate.isSameDay(as: today) {
-				return "Today – \(formatted)"
-			}
-			
-			let tomorrow = Date(timeIntervalSinceNow: ONE_DAY)
-			if startDate.isSameDay(as: tomorrow) {
-				return "Tomorrow – \(formatted)"
-			}
+        var dayMonth: String {
+            let formatted = Event.dateFormatter.string(from: startDate)
+            let today = Date()
+            if startDate.isSameDay(as: today) {
+                return "Today – \(formatted)"
+            }
 
-			return formatted
-		}
+            let tomorrow = Date(timeIntervalSinceNow: ONE_DAY)
+            if startDate.isSameDay(as: tomorrow) {
+                return "Tomorrow – \(formatted)"
+            }
+
+            return formatted
+        }
         var nearestRemainingDesc: String {
             var prefix: String, suffix: String
             let interval: TimeInterval
             if (hasStarted) {
-				prefix = ""
-				suffix = " remaining"
-				interval = endDate.timeIntervalSinceNow
+                prefix = ""
+                suffix = " remaining"
+                interval = endDate.timeIntervalSinceNow
             } else {
-				prefix = "in "
-				suffix = ""
-				interval = startDate.timeIntervalSinceNow
+                prefix = "in "
+                suffix = ""
+                interval = startDate.timeIntervalSinceNow
             }
 
             return remainingDesc(interval: interval, prefix: prefix, suffix: suffix)
@@ -138,7 +138,7 @@ class EventController: ObservableObject {
         }
 
         func sameDay(as date: Event) -> Bool {
-			startDate.isSameDay(as: date.startDate)
+            startDate.isSameDay(as: date.startDate)
         }
     }
     
@@ -171,11 +171,11 @@ class EventController: ObservableObject {
         guard let events = events else { return [] }
         return events.filter { $0.endDate > Date() && $0.startDate < Date() }
     }
-	
-	let nowOffset: TimeInterval
 
-	init(nowOffset: TimeInterval = 0) {
-		self.nowOffset = nowOffset
+    let nowOffset: TimeInterval
+
+    init(nowOffset: TimeInterval = 0) {
+        self.nowOffset = nowOffset
 
         if let ignoredIds = UserDefaults.standard.array(forKey: "EKCalendar.ignoredIds") as? [String] {
             self.ignoredIds = ignoredIds
@@ -183,14 +183,14 @@ class EventController: ObservableObject {
             self.ignoredIds = []
         }
 
-        if authorizationStatus == .authorized {
+        if authorizationStatus == .fullAccess {
             fetchEvents()
         }
     }
 
     func requestAccess() {
         isRequestingAccess = true
-        eventStore.requestAccess(to: EKEntityType.event, completion: _requestAccessCompletion)
+        eventStore.requestFullAccessToEvents(completion: _requestAccessCompletion)
     }
 
     private func _requestAccessCompletion(accessGranted: Bool, error: Error?) {
@@ -238,7 +238,7 @@ class EventController: ObservableObject {
     }
     
     func fetchEvents() {
-        guard authorizationStatus == .authorized else { return }
+        guard authorizationStatus == .fullAccess else { return }
 
         calendars = eventStore.calendars(for: .event)
         selectedCalendars = calendars.map { calendar in
@@ -253,7 +253,7 @@ class EventController: ObservableObject {
             !ignoredIds.contains(calendar.calendarIdentifier)
         }
 
-		let now = Date(timeIntervalSinceNow: self.nowOffset)
+        let now = Date(timeIntervalSinceNow: self.nowOffset)
         self.dismissedEvents = self.dismissedEvents.filter { $0.endDate > now }
 
         let isStale = lastFetched.map({ now.timeIntervalSince1970 - $0.timeIntervalSince1970 > 60 }) ?? true
@@ -263,10 +263,10 @@ class EventController: ObservableObject {
         }
 
         let laterComponents = DateComponents(day: 2)
-		let today = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now)
+        let today = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: now)
         guard
             let later = calendar.date(byAdding: laterComponents, to: now),
-			let today = today
+            let today = today
             else { return }
         
         let predicate = eventStore.predicateForEvents(withStart: today, end: later, calendars: includedCalendars)
@@ -290,11 +290,11 @@ class EventController: ObservableObject {
             )
 
             guard endDate > now, !event.isAllDay else { return nil }
-			guard newEvent.status == .accepted || event.startDate > now else { return nil }
-			
-			if let notes = event.notes, notes.contains("focus time") || notes.contains("#ignore") {
-				return nil
-			}
+            guard newEvent.status == .accepted || event.startDate > now else { return nil }
+
+            if let notes = event.notes, notes.contains("focus time") || notes.contains("#ignore") {
+                return nil
+            }
             return newEvent
         }
 
@@ -305,7 +305,7 @@ class EventController: ObservableObject {
                 $0.startDate > now
                 && $0.isSoon
                 && !isDismissed($0)
-				&& $0.status == .accepted
+                && $0.status == .accepted
             }
         }
     }
