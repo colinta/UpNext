@@ -86,8 +86,20 @@ struct SoonEventView: View {
 	var color2: Color {
 		currentMode == .dark ? Color.purple : Color.mint
 	}
-	var bgColor: Color {
-		currentMode == .dark ? Color.black : Color.white
+	var urgentColor1: Color {
+		Color.red
+	}
+	var urgentColor2: Color {
+		Color.blue
+	}
+	func bgColor(altColor: Bool) -> Color {
+		if soonEvent.isStarted {
+			return altColor ? urgentColor1 : urgentColor2
+		} else if soonEvent.isVerySoon {
+			return altColor ? color1 : color2
+		} else {
+			return currentMode == .dark ? Color.black : Color.white
+		}
 	}
 
     var body: some View {
@@ -99,7 +111,7 @@ struct SoonEventView: View {
             }
             .padding([.leading, .trailing], 10)
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
-        }.background(soonEvent.isVerySoon ? (Int(soonEvent.remaining) % 2 == 0 ? color1 : color2) : bgColor )
+        }.background(bgColor(altColor: Int(soonEvent.remaining) % 2 == 0))
             .onTapGesture {
                 self.onTap?()
             }.ignoresSafeArea()

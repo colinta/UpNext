@@ -69,6 +69,9 @@ class EventController: ObservableObject {
         var isVerySoon: Bool {
             remaining < 60
         }
+		var isStarted: Bool {
+			remaining < 0
+		}
         var dayMonth: String {
             let formatted = Event.dateFormatter.string(from: startDate)
             let today = Date()
