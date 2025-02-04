@@ -275,6 +275,9 @@ class EventController: ObservableObject {
         let predicate = eventStore.predicateForEvents(withStart: today, end: later, calendars: includedCalendars)
         let allEvents: [Event] = eventStore.events(matching: predicate).compactMap { event in
             guard event.availability != .free, let startDate = event.startDate, let endDate = event.endDate else { return nil }
+			if let notes = event.notes, notes.contains("focus time") || notes.contains("#ignore") {
+				return nil
+			}
 
             let defaultStatus: EKParticipantStatus
             if event.attendees?.count ?? 0 == 0 {
@@ -295,21 +298,26 @@ class EventController: ObservableObject {
             guard endDate > now, !event.isAllDay else { return nil }
             guard newEvent.status == .accepted || event.startDate > now else { return nil }
 
-            if let notes = event.notes, notes.contains("focus time") || notes.contains("#ignore") {
-                return nil
-            }
             return newEvent
         }
 
         self.events = allEvents
 
-        if self.soonEvent == nil {
-            self.soonEvent = allEvents.first {
+		if let soonEvent = self.soonEvent,
+		   !allEvents.contains(where: { $0.id == soonEvent.id }) ||
+		   soonEvent.startDate.timeIntervalSinceNow < -300 ||
+			soonEvent.endDate.timeIntervalSinceNow < 0
+		{
+			self.soonEvent = nil
+		}
+		
+		if self.soonEvent == nil {
+			self.soonEvent = allEvents.first(where: {
                 $0.startDate > now
                 && $0.isSoon
                 && !isDismissed($0)
                 && $0.status == .accepted
-            }
+            })
         }
     }
 }
