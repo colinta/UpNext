@@ -6,6 +6,7 @@ import SwiftUI
 import EventKit
 
 typealias Event = EventController.Event
+var textToCopy = ""
 
 struct ContentView: View {
     @ObservedObject var controller = EventController()
@@ -174,9 +175,14 @@ struct EventsView: View {
     func titleBar() -> some View {
         ZStack {
             Text("\(events.count) Upcoming Event" + (events.count == 1 ? "" : "s"))
-            if let onCalendarsTap = onCalendarsTap {
-                HStack {
-                    Spacer()
+			HStack {
+				Button(action: {
+					copyToClipboard(text: textToCopy)
+				}) {
+					Text("Copy")
+				}.padding([.leading], 10)
+				Spacer()
+					if let onCalendarsTap = onCalendarsTap {
                     Button(action: {
                         onCalendarsTap()
                     }) {
@@ -187,6 +193,10 @@ struct EventsView: View {
         }.padding([.top], 10)
     }
 
+	func copyToClipboard(text: String) {
+		UIPasteboard.general.string = text
+	}
+	
     func listItemText(_ text: String) -> some View {
         HStack {
             VStack {
@@ -253,12 +263,16 @@ struct EventsView: View {
 
     var body: some View {
         VStack {
+			titleBar()
+
             if events.count == 0 {
-                Text("No Events")
+				Group {
+					Spacer()
+					Text("No Events")
+					Spacer()
+				}
             }
             else {
-                titleBar()
-
                 List(eventsAndPrev, id: \EventAndPrev.0.id) { (event, prevEvent) in
 					if let prevEvent = prevEvent, !event.sameDay(as: prevEvent) {
 						ZStack {
