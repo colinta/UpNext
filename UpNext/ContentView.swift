@@ -37,20 +37,23 @@ struct ContentView: View {
                    Text("To use this app we will need access to your calendar(s).")
                }
             }
-            else if selectingCalendars {
-                CalendarsView(
-                    controller.selectedCalendars,
-                    onToggle: { calendar in
-                        controller.toggle(calendar)
-                    }
-                )
-                    .onDismiss {
-                        selectingCalendars = false
-                    }
-            }
-            else {
-                controller.events.map { events in EventsView(events)
+            else if let events = controller.events {
+                // System navigation bar + toolbar items let iOS place the
+                // controls correctly (including vertical bars on iPhone Duo).
+                NavigationStack {
+                    EventsView(events)
                         .onCalendarsTap { selectingCalendars = true }
+                }
+                .sheet(isPresented: $selectingCalendars) {
+                    CalendarsView(
+                        controller.selectedCalendars,
+                        onToggle: { calendar in
+                            controller.toggle(calendar)
+                        }
+                    )
+                        .onDismiss {
+                            selectingCalendars = false
+                        }
                 }
             }
         }.onReceive(timer) { _ in
@@ -112,10 +115,14 @@ struct SoonEventView: View {
             }
             .padding([.leading, .trailing], 10)
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity, alignment: .topLeading)
-        }.background(bgColor(altColor: Int(soonEvent.remaining) % 2 == 0))
-            .onTapGesture {
-                self.onTap?()
-            }.ignoresSafeArea()
+        }
+        // Only the background bleeds to the edges; the text stays inside the
+        // safe area (camera, vertical bars on iPhone Duo, etc).
+        .background(bgColor(altColor: Int(soonEvent.remaining) % 2 == 0).ignoresSafeArea())
+        .contentShape(Rectangle())
+        .onTapGesture {
+            self.onTap?()
+        }
     }
 }
 
@@ -136,14 +143,7 @@ struct CalendarsView: View {
 
 	
     var body: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Button(action: onDismiss ?? {}) {
-                    Text("Dismiss")
-                }.padding([.trailing], 10)
-            }.padding([.top], 10)
-
+        NavigationStack {
             List(calendars, id: \.id) { calendar in
                 Button(action: {
                     onToggle(calendar)
@@ -151,6 +151,15 @@ struct CalendarsView: View {
                     HStack {
                         Image(systemName: calendar.isSelected ? "checkmark.circle.fill" : "checkmark.circle")
                         Text(calendar.title)
+                    }
+                }
+            }
+            .navigationTitle("Calendars")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action: onDismiss ?? {}) {
+                        Label("Done", systemImage: "checkmark")
                     }
                 }
             }
@@ -172,25 +181,30 @@ struct EventsView: View {
         return EventsView(events, onCalendarsTap: onCalendarsTap)
     }
 
-    func titleBar() -> some View {
-        ZStack {
-            Text("\(events.count) Upcoming Event" + (events.count == 1 ? "" : "s"))
-			HStack {
-				Button(action: {
-					copyToClipboard(text: textToCopy)
-				}) {
-					Text("Copy")
-				}.padding([.leading], 10)
-				Spacer()
-					if let onCalendarsTap = onCalendarsTap {
-                    Button(action: {
-                        onCalendarsTap()
-                    }) {
-                        Text("Calendars")
-                    }.padding([.trailing], 10)
+    var title: String {
+        "\(events.count) Upcoming Event" + (events.count == 1 ? "" : "s")
+    }
+
+    // Title + symbol (Label) lets the system choose the representation:
+    // icon-only in a vertical bar, title + icon in an overflow menu.
+    @ToolbarContentBuilder
+    func toolbarItems() -> some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button(action: {
+                copyToClipboard(text: textToCopy)
+            }) {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+        }
+        if let onCalendarsTap = onCalendarsTap {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    onCalendarsTap()
+                }) {
+                    Label("Calendars", systemImage: "calendar")
                 }
             }
-        }.padding([.top], 10)
+        }
     }
 
 	func copyToClipboard(text: String) {
@@ -252,7 +266,7 @@ struct EventsView: View {
 		}
 	}
 
-    var eventsAndPrev: [EventAndPrev] {
+    func eventsAndPrev(_ events: [Event]) -> [EventAndPrev] {
         var prevEvent: Event? = nil
         return events.map { event in
             let value = (event, prevEvent)
@@ -261,19 +275,70 @@ struct EventsView: View {
         }
     }
 
-    var body: some View {
-        VStack {
-			titleBar()
+    /// Set when the inner display is partially folded (an active `.division`
+    /// reserved region intersects this view).
+    @State private var isFolded = false
+    /// Regular width: iPhone Duo inner display (open or folded), iPad, etc.
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
+    var todayList: some View {
+        eventList(events.filter(\.isToday), emptyText: "No events today")
+    }
+
+    var laterList: some View {
+        eventList(events.filter { !$0.isToday }, emptyText: "No upcoming events")
+    }
+
+    /// Pre-27.1 fallback: wider than tall → side by side, else top/bottom.
+    @State private var isLandscape = true
+
+    var body: some View {
+        ZStack {
+            if #available(iOS 27.1, *), isFolded || horizontalSizeClass == .regular {
+                // Split arrangement: side by side when wider than tall, top/bottom
+                // when taller than wide, and each pane on its own side of the
+                // fold when partially folded. Today is leading/top.
+                ArrangementView {
+                    todayList
+                } secondary: {
+                    laterList
+                }
+                .arrangementViewStyle(.split)
+            } else if horizontalSizeClass == .regular {
+                let layout = isLandscape
+                    ? AnyLayout(HStackLayout(spacing: 0))
+                    : AnyLayout(VStackLayout(spacing: 0))
+                layout {
+                    todayList
+                    Divider()
+                    laterList
+                }
+            } else {
+                eventList(events, emptyText: "No Events")
+            }
+        }
+        .modifier(FoldDetector(isFolded: $isFolded))
+        .onGeometryChange(for: Bool.self) { proxy in
+            proxy.size.width > proxy.size.height
+        } action: { isLandscape in
+            self.isLandscape = isLandscape
+        }
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { toolbarItems() }
+    }
+
+    func eventList(_ events: [Event], emptyText: String) -> some View {
+        VStack {
             if events.count == 0 {
 				Group {
 					Spacer()
-					Text("No Events")
+					Text(emptyText)
 					Spacer()
 				}
             }
             else {
-                List(eventsAndPrev, id: \EventAndPrev.0.id) { (event, prevEvent) in
+                List(eventsAndPrev(events), id: \EventAndPrev.0.id) { (event, prevEvent) in
 					if let prevEvent = prevEvent, !event.sameDay(as: prevEvent) {
 						ZStack {
 							Text(event.dayMonth)
@@ -286,8 +351,26 @@ struct EventsView: View {
 					listItem(event)
 						.listRowInsets(EdgeInsets())
                 }.listStyle(.plain)
-                    .padding([.top], 10)
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+/// Reports whether the device fold (an active `.division` reserved region,
+/// e.g. iPhone Duo partially folded) currently intersects the modified view.
+struct FoldDetector: ViewModifier {
+    @Binding var isFolded: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 27.1, *) {
+            content.onGeometryChange(for: Bool.self) { proxy in
+                proxy.reservedRegions(kind: .division).contains { $0.isActive }
+            } action: { isFolded in
+                self.isFolded = isFolded
+            }
+        } else {
+            content
         }
     }
 }
@@ -331,7 +414,7 @@ struct EventsView_Upcoming_Previews: PreviewProvider {
             return Event(id: "\(startTime)-\(endComponents)", title: "\(title)\(postfix)", startDate: startTime, endDate: endTime, status: status)
         }
 
-        return VStack {
+        return NavigationStack {
             EventsView(events, onCalendarsTap: {})
         }
     }
@@ -368,7 +451,7 @@ struct EventsView_Status_Previews: PreviewProvider {
             return Event(id: "\(startTime)-\(endComponents)", title: title, startDate: startTime, endDate: endTime, status: status)
         }
 
-        return VStack {
+        return NavigationStack {
             EventsView(events, onCalendarsTap: {})
         }
     }
@@ -394,7 +477,7 @@ struct EventsView_Current_Previews: PreviewProvider {
             return Event(id: "\(startTime)-\(endComponents)", title: "Do some work", startDate: startTime, endDate: endTime, status: .accepted)
         }
 
-        return VStack {
+        return NavigationStack {
             EventsView([event] + events)
         }
     }

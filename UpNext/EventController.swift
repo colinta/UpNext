@@ -72,6 +72,12 @@ class EventController: ObservableObject {
 		var isStarted: Bool {
 			remaining < 0
 		}
+        /// Starts before tomorrow (includes ongoing events that started earlier).
+        var isToday: Bool {
+            let startOfToday = calendar.startOfDay(for: Date())
+            guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday) else { return false }
+            return startDate < startOfTomorrow
+        }
         var dayMonth: String {
             let formatted = Event.dateFormatter.string(from: startDate)
             let today = Date()
