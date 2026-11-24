@@ -339,15 +339,10 @@ struct EventsView: View {
             }
             else {
                 List(eventsAndPrev(events), id: \EventAndPrev.0.id) { (event, prevEvent) in
-					if let prevEvent = prevEvent, !event.sameDay(as: prevEvent) {
-						ZStack {
-							Text(event.dayMonth)
-						}
-					} else if prevEvent == nil {
-						ZStack {
-							Text(event.dayMonth)
-						}
-					}
+                    if let header = event.dayHeader,
+                       prevEvent.map({ !event.sameDay(as: $0) }) ?? true {
+                        Text(header)
+                    }
 					listItem(event)
 						.listRowInsets(EdgeInsets())
                 }.listStyle(.plain)

@@ -9,7 +9,6 @@ import SwiftUI
 
 private let calendar = Calendar.current
 private let dayMonthYearComponents: Set<Foundation.Calendar.Component> = [.day, .month, .year]
-private let ONE_DAY: TimeInterval = 24 * 60 * 60
 
 private extension Date {
     func isSameDay(as date: Date) -> Bool {
@@ -46,6 +45,17 @@ class EventController: ObservableObject {
         let startDate: Date
         let endDate: Date
         let status: EKParticipantStatus
+
+        init(id: String, title: String, startDate: Date, endDate: Date, status: EKParticipantStatus) {
+            // EventKit can reuse an identifier across occurrences of a recurring
+            // event. List identity and dismissal must identify one occurrence.
+            self.id = "\(id)|\(startDate.timeIntervalSinceReferenceDate)"
+            self.title = title
+            self.startDate = startDate
+            self.endDate = endDate
+            self.status = status
+        }
+
         var hasStarted: Bool {
             remaining < 0
         }
@@ -78,19 +88,12 @@ class EventController: ObservableObject {
             guard let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday) else { return false }
             return startDate < startOfTomorrow
         }
-        var dayMonth: String {
-            let formatted = Event.dateFormatter.string(from: startDate)
-            let today = Date()
-            if startDate.isSameDay(as: today) {
-                return "Today – \(formatted)"
+        var dayHeader: String? {
+            guard !isToday else { return nil }
+            if calendar.isDateInTomorrow(startDate) {
+                return "Tomorrow"
             }
-
-            let tomorrow = Date(timeIntervalSinceNow: ONE_DAY)
-            if startDate.isSameDay(as: tomorrow) {
-                return "Tomorrow – \(formatted)"
-            }
-
-            return formatted
+            return Event.dateFormatter.string(from: startDate)
         }
         var nearestRemainingDesc: String {
             var prefix: String, suffix: String
@@ -307,7 +310,7 @@ class EventController: ObservableObject {
             return newEvent
         }
 
-        self.events = allEvents
+        self.events = allEvents.sorted { $0.startDate < $1.startDate }
 
 		if let soonEvent = self.soonEvent,
 		   !allEvents.contains(where: { $0.id == soonEvent.id }) ||
